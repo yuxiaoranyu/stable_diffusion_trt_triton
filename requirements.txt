@@ -1,0 +1,11 @@
+torch
+transformers
+pillow
+opencv-python-headless
+onnx
+onnxruntime
+nvidia-pyindex
+onnx-graphsurgeon
+polygraphy==0.47.0
+accelerate
+colored
