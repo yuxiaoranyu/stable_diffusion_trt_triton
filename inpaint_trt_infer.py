@@ -366,7 +366,9 @@ class TensorRTStableDiffusionInpaintPipeline():
         # load models
         self.__loadModels()
         self.engine = build_engines(self.engine_dir)
-
+        # print("self.image_height: ", self.image_height)
+        # load resources
+        self.__loadResources(self.image_height, self.image_width, 1)
         return self
 
     def __initialize_timesteps(self, num_inference_steps, strength):
@@ -549,7 +551,6 @@ class TensorRTStableDiffusionInpaintPipeline():
         negative_prompt: Optional[Union[str, List[str]]] = None,
         generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
     ):
-        
         self.generator = generator
         self.denoising_steps = num_inference_steps
         self.guidance_scale = guidance_scale
@@ -578,7 +579,7 @@ class TensorRTStableDiffusionInpaintPipeline():
             raise ValueError(
                 f"Batch size {len(prompt)} is larger than allowed {self.max_batch_size}. If dynamic shape is used, then maximum batch size is 4"
             )
-
+       
         # Validate image dimensions
         mask_width, mask_height = mask_image.size
         if mask_height != self.image_height or mask_width != self.image_width:
@@ -586,9 +587,9 @@ class TensorRTStableDiffusionInpaintPipeline():
                 f"Input image height and width {self.image_height} and {self.image_width} are not equal to "
                 f"the respective dimensions of the mask image {mask_height} and {mask_width}"
             )
-
+        print("self.image_height: ", self.image_height, self.image_width, batch_size)
         # load resources
-        self.__loadResources(self.image_height, self.image_width, batch_size)
+        # self.__loadResources(self.image_height, self.image_width, batch_size)
 
         with torch.inference_mode(), torch.autocast("cuda"), trt.Runtime(TRT_LOGGER):
             # Spatial dimensions of latent tensor
@@ -660,7 +661,7 @@ class TensorRTStableDiffusionInpaintPipeline():
 
 if __name__=="__main__":
     from diffusers.utils import load_image
-    inpaint_model_path="/workspace/code/diffusers-final/"
+    inpaint_model_path="/workspace/code/stable_diffusion_inpainting/"
     tokenizer = CLIPTokenizer.from_pretrained(inpaint_model_path+"tokenizer")
     scheduler = DDIMScheduler.from_pretrained(inpaint_model_path+"scheduler")
     trt_inpaint_pipe=TensorRTStableDiffusionInpaintPipeline(
@@ -668,13 +669,14 @@ if __name__=="__main__":
         scheduler=scheduler,
     )
     trt_inpaint_pipe.set_cached_folder(inpaint_model_path)
-    device = torch.device('cuda')
-    trt_inpaint_pipe.to(device)
-    init_image_path = "image/index11.jpg"
-    mask_image_path = "image/tong_mask.png"
-    size = 512
+    size = 832
     trt_inpaint_pipe.image_width = size
     trt_inpaint_pipe.image_height = size
+    device = torch.device('cuda')
+    trt_inpaint_pipe.to(device)
+    init_image_path = "image/sugar.jpg"
+    mask_image_path = "image/cp.jpg"
+    
     init_image = load_image(init_image_path).resize((size,size))
     mask_image = load_image(mask_image_path).resize((size,size))
     print("init_image: ", np.array(init_image).shape)
@@ -682,10 +684,10 @@ if __name__=="__main__":
     generator = torch.Generator(device).manual_seed(54924510)
     import time
     time_list=[]
-    for i in range(10):
+    for i in range(1):
         start = time.time()
         image = trt_inpaint_pipe(
-            prompt="Lying in the flowers, flower, no_humans, rose, leaf, flower, pink rose, white rose, beautiful",
+            prompt="a few maple leaf scattered around, cozy day, outdoors, nature . 35mm photograph, film, bokeh, professional, 4k, highly detailed",
             generator = generator,
             negative_prompt='',
             image=init_image,

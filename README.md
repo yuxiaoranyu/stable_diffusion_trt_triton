@@ -1,1 +1,42 @@
-别急，待补充，元旦前完善
+## 示例模型链接
+<https://pan.baidu.com/s/1sJNz9_zTqAXJhvBeN3tFkQ?pwd=k49b> 提取码：k49b 
+提供的模型需要使用tensorrt-23.04以及tritonserver-23.04容器运行，并将其下载至/workspace/code目录下
+## docker镜像搭建
+1) 镜像拉取
+```sh
+docker pull nvcr.io/nvidia/tritonserver:23.04-py3
+```
+在拉取triton镜像的时候，需要检查镜像版本和NVIDIA驱动是否匹配，镜像的版本号和驱动版本存在对应关系,参考文档：<https://docs.nvidia.com/deeplearning/triton-inference-server/release-notes/index.html>
+
+2) 启动镜像
+```sh
+docker run -dt --gpus=all -p 1237:22 --shm-size 32g --name triton -v /home/xxiao/code:/workspace/code nvcr.io/nvidia/tritonserver:23.04-py3
+```
+shm-size根据自己的设备实际大小进行调整
+3) 进入镜像
+```
+docker exec -it triton /bin/bash
+cd /workspace/code
+git clone https://github.com/yuxiaoranyu/stable_diffusion_trt_triton.git
+cd stable_diffusion_trt_triton
+pip install -r requirements.txt
+```
+安装tensorrt
+```
+cp -r /workspace/code/stable_diffusion_inpainting/tensorrt /usr/local/lib/python3.8/dist-packages/tensorrt
+```
+该tensorrt文件夹是从tensorrt-23.04镜像中拷贝出来
+
+## 将模型转换为tensorrt
+```
+python3 inpaint2trt.py
+```
+等待转换完成，模型较大，所需时间较长，耐心等候
+转换完成后将在/workspace/code/stable_diffusion_inpainting目录下生成onnx和engine文件夹
+## 使用原生tensorrt执行推理
+```
+python3 inpaint_trt_infer.py
+```
+## 使用tritonserver执行推理
+
+
