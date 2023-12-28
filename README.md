@@ -13,6 +13,7 @@ docker pull nvcr.io/nvidia/tritonserver:23.04-py3
 docker run -dt --gpus=all -p 1237:22 --shm-size 32g --name triton -v /home/xxiao/code:/workspace/code nvcr.io/nvidia/tritonserver:23.04-py3
 ```
 shm-size根据自己的设备实际大小进行调整
+
 3) 进入镜像
 ```
 docker exec -it triton /bin/bash
