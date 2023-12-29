@@ -39,5 +39,33 @@ python3 inpaint2trt.py
 python3 inpaint_trt_infer.py
 ```
 ## 使用tritonserver执行推理
-
-
+```
+tritonserver --model-repository=inpaint_model
+```
+等待triton启动后
+```
+python3 inpaint_triton_infer.py
+```
+在unet的推理过程中，需要循环执行推理，使用triton client访问server端会非常耗时，故unet部分仍旧使用tensorrt的推理。在triton的代码仓库中提供了python_backend的方法，该方法已写到代码中，但是需要换一种triton的方法才能使用，该方法暂时先卖个关子，后续将会更新上来。
+使用triton推理，需要建一个类似于inpaint_model的目录
+```
+./inpaint_model/
+|-- text_encoder
+|   |-- 1
+|   |   `-- model.plan
+|   `-- config.pbtxt
+|-- vae_decoder
+|   |-- 1
+|   |   `-- model.plan
+|   `-- config.pbtxt
+`-- vae_encoder
+    |-- 1
+    |   `-- model.plan
+    `-- config.pbtxt
+``` 
+需要将stable_diffusion_inpainting/engine下的tensorrt模型拷贝至inpaint_model相应目录下，并配置相应的config.pbtxt文件（已提供）
+后续将会陆续更新controlnet，ip_adapter的inpaint模型代码以及文生图tensorrt推理
+## 相关代码参考
+<https://github.com/huggingface/diffusers>  
+<https://github.com/triton-inference-server/server>  
+<https://github.com/triton-inference-server/python_backend>

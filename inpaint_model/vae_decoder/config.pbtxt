@@ -1,0 +1,10 @@
+name: "vae_decoder"
+platform: "tensorrt_plan"
+max_batch_size : 0
+instance_group [
+    {
+      count: 1
+      kind: KIND_GPU
+      gpus: [0]
+    }
+  ]
